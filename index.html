@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LearnVest — Learn Money, Play Smart, Build Wealth</title>
+<style>
+:root {
+  --red: #CC0000; --red2: #AA0000; --navy: #1B2B4B;
+  --gold: #F0A500; --green: #2E7D32; --green2: #4CAF50;
+  --bg: #F8F9FA; --card: #FFFFFF; --border: #E0E0E0;
+  --text: #1a1a1a; --muted: #666; --radius: 12px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); overflow-x: hidden; }
+
+/* ── LAYOUT ── */
+.app-shell { display: flex; flex-direction: column; min-height: 100vh; max-width: 480px; margin: 0 auto; background: var(--card); box-shadow: 0 0 40px rgba(0,0,0,0.1); position: relative; }
+.screen { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 80px; }
+.screen.active { display: flex; }
+
+/* ── TOP BAR ── */
+.topbar { background: var(--red); color: white; padding: 14px 16px 10px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+.topbar-brand { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+.topbar-stats { display: flex; gap: 12px; font-size: 13px; font-weight: 600; }
+.stat-pill { background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 4px; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid var(--border); display: flex; z-index: 200; }
+.nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px 4px 8px; cursor: pointer; border: none; background: none; font-size: 10px; color: var(--muted); transition: color 0.2s; gap: 3px; }
+.nav-btn .nav-icon { font-size: 22px; }
+.nav-btn.active { color: var(--red); }
+.nav-btn.active .nav-icon { transform: scale(1.1); }
+
+/* ── CARDS ── */
+.card { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin: 0 16px 12px; box-shadow: var(--shadow); }
+.card-red { background: linear-gradient(135deg, var(--red), var(--red2)); color: white; border: none; }
+.card-navy { background: var(--navy); color: white; border: none; }
+.card-gold { background: linear-gradient(135deg, #F0A500, #E09000); color: white; border: none; }
+
+/* ── BUTTONS ── */
+.btn { padding: 12px 20px; border-radius: 25px; border: none; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-red { background: var(--red); color: white; }
+.btn-red:hover { background: var(--red2); transform: translateY(-1px); }
+.btn-navy { background: var(--navy); color: white; }
+.btn-outline { background: transparent; border: 2px solid var(--red); color: var(--red); }
+.btn-outline:hover { background: var(--red); color: white; }
+.btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 20px; }
+.btn-green { background: var(--green); color: white; }
+.btn-gold { background: var(--gold); color: white; }
+.btn-full { width: 100%; }
+
+/* ── SECTION TITLES ── */
+.section-title { font-size: 16px; font-weight: 700; color: var(--navy); padding: 16px 16px 8px; }
+.section-sub { font-size: 13px; color: var(--muted); padding: 0 16px 12px; }
+
+/* ── PROGRESS BAR ── */
+.progress-bar { height: 8px; background: #eee; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--red); border-radius: 4px; transition: width 0.5s; }
+.progress-fill.green { background: var(--green2); }
+.progress-fill.gold { background: var(--gold); }
+
+/* ─────────────── ONBOARDING ─────────────── */
+#screen-onboard { background: var(--red); color: white; align-items: center; justify-content: center; padding: 40px 24px; }
+.onboard-logo { font-size: 48px; font-weight: 800; letter-spacing: -2px; margin-bottom: 8px; }
+.onboard-tagline { font-size: 15px; opacity: 0.9; text-align: center; margin-bottom: 40px; }
+.onboard-fox { margin: 0 auto 30px; text-align: center; }
+.age-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; width: 100%; margin-bottom: 20px; }
+.age-card { background: rgba(255,255,255,0.15); border: 2px solid transparent; border-radius: var(--radius); padding: 16px 8px; text-align: center; cursor: pointer; transition: all 0.2s; }
+.age-card:hover, .age-card.selected { background: white; color: var(--red); border-color: white; }
+.age-card .age-icon { font-size: 28px; margin-bottom: 6px; }
+.age-card .age-label { font-size: 12px; font-weight: 600; }
+.age-card .age-range { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+.name-input { width: 100%; padding: 14px 18px; border-radius: 25px; border: 2px solid rgba(255,255,255,0.4); background: rgba(255,255,255,0.15); color: white; font-size: 16px; margin-bottom: 16px; outline: none; }
+.name-input::placeholder { color: rgba(255,255,255,0.6); }
+.name-input:focus { border-color: white; }
+
+/* ─────────────── HOME ─────────────── */
+.hero-card { background: linear-gradient(135deg, var(--red), #8B0000); color: white; border-radius: var(--radius); margin: 12px 16px; padding: 20px; position: relative; overflow: hidden; }
+.hero-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.hero-sub { font-size: 13px; opacity: 0.85; margin-bottom: 16px; }
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 0 16px 8px; }
+.stat-box { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 14px 10px; text-align: center; }
+.stat-box .val { font-size: 20px; font-weight: 700; color: var(--red); }
+.stat-box .lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+/* LESSON PATH */
+.path-container { padding: 8px 16px; }
+.path-node { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: var(--radius); border: 1px solid var(--border); background: white; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; position: relative; box-shadow: var(--shadow); }
+.path-node:hover:not(.locked) { transform: translateX(4px); border-color: var(--red); }
+.path-node.completed { border-color: var(--green2); background: #f1fff4; }
+.path-node.current { border-color: var(--red); background: #fff5f5; animation: pulse-border 2s infinite; }
+.path-node.locked { opacity: 0.5; cursor: not-allowed; }
+@keyframes pulse-border { 0%,100%{box-shadow:0 0 0 0 rgba(204,0,0,0.3)} 50%{box-shadow:0 0 0 6px rgba(204,0,0,0)} }
+.node-icon { width: 52px; height: 52px; border-radius: 50%; background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 26px; flex-shrink: 0; border: 2px solid var(--border); }
+.path-node.completed .node-icon { background: #e8f5e9; border-color: var(--green2); }
+.path-node.current .node-icon { background: #ffebee; border-color: var(--red); }
+.node-info { flex: 1; }
+.node-title { font-weight: 600; font-size: 14px; }
+.node-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.node-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 12px; }
+.badge-done { background: #e8f5e9; color: var(--green); }
+.badge-current { background: #ffebee; color: var(--red); }
+.badge-locked { background: #f5f5f5; color: #999; }
+
+/* DAILY CHALLENGE */
+.daily-card { margin: 0 16px 12px; padding: 16px; background: var(--navy); border-radius: var(--radius); color: white; }
+.daily-title { font-size: 13px; opacity: 0.7; margin-bottom: 6px; }
+.daily-text { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+
+/* ─────────────── MASCOT ─────────────── */
+.mascot-container { position: relative; text-align: center; padding: 8px 0; }
+.bubble { display: inline-block; background: var(--red); color: white; font-size: 13px; padding: 10px 16px; border-radius: 20px; margin-bottom: 14px; max-width: 280px; line-height: 1.4; position: relative; transition: opacity 0.3s; }
+.bubble::after { content:''; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%); border:6px solid transparent; border-top-color:var(--red); border-bottom:none; }
+.fox-wrap { display: inline-block; cursor: pointer; }
+
+/* FOX ANIMATIONS */
+@keyframes idle-bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes celebrate { 0%{transform:translateY(0)rotate(0)} 20%{transform:translateY(-22px)rotate(-9deg)} 40%{transform:translateY(-26px)rotate(9deg)} 60%{transform:translateY(-16px)rotate(-6deg)} 80%{transform:translateY(-8px)rotate(3deg)} 100%{transform:translateY(0)rotate(0)} }
+@keyframes sad { 0%,100%{transform:translateY(0)rotate(0)} 25%{transform:translateY(5px)rotate(-5deg)} 75%{transform:translateY(5px)rotate(5deg)} }
+@keyframes teach { 0%,100%{transform:translateY(0)rotate(0)} 30%{transform:translateY(-5px)rotate(-3deg)} 70%{transform:translateY(-5px)rotate(3deg)} }
+@keyframes wave-anim { 0%{transform:translateY(0)rotate(0)} 15%{transform:translateY(-8px)rotate(-7deg)} 35%{transform:translateY(-12px)rotate(8deg)} 55%{transform:translateY(-8px)rotate(-5deg)} 75%{transform:translateY(-4px)rotate(3deg)} 100%{transform:translateY(0)rotate(0)} }
+@keyframes spin-jump { 0%{transform:translateY(0)rotate(0)} 45%{transform:translateY(-28px)rotate(180deg)} 80%{transform:translateY(-10px)rotate(345deg)} 100%{transform:translateY(0)rotate(360deg)} }
+@keyframes tail-wag { 0%,100%{transform:rotate(0) } 50%{transform:rotate(14deg)} }
+@keyframes coin-fly { 0%{opacity:1;transform:translateY(0)scale(1)} 100%{opacity:0;transform:translateY(-50px)scale(0.5)} }
+@keyframes chart-blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.fox-idle { animation: idle-bob 2.2s ease-in-out infinite; }
+.fox-celebrate { animation: celebrate 1s ease-in-out 1; }
+.fox-sad { animation: sad 0.9s ease-in-out 2; }
+.fox-teach { animation: teach 1.3s ease-in-out 2; }
+.fox-wave { animation: wave-anim 1.1s ease-in-out 1; }
+.fox-spin { animation: spin-jump 1s ease-in-out 1; }
+.fox-idle .tail { animation: tail-wag 2.2s ease-in-out infinite; transform-origin: 24px 120px; }
+.fox-celebrate .coin1 { animation: coin-fly 0.8s 0.1s ease-out 1 forwards; }
+.fox-celebrate .coin2 { animation: coin-fly 0.8s 0.25s ease-out 1 forwards; }
+.fox-celebrate .coin3 { animation: coin-fly 0.8s 0.4s ease-out 1 forwards; }
+.fox-teach .chart-screen { animation: chart-blink 0.6s ease-in-out 4; }
+.fox-wave .wing-l { animation: arm-wave-l 1.1s ease-in-out 1; transform-origin: 68px 95px; }
+@keyframes arm-wave-l { 0%,100%{transform:rotate(0)} 30%{transform:rotate(-30deg)} 60%{transform:rotate(-18deg)} }
+
+.xp-float { position:absolute; font-size:16px; font-weight:700; color:var(--red); pointer-events:none; opacity:0; top:20%; left:50%; transform:translateX(-50%); white-space:nowrap; z-index:10; }
+.xp-float.pop { animation: xp-up 1.2s ease-out forwards; }
+@keyframes xp-up { 0%{opacity:1;transform:translateX(-50%)translateY(0)} 100%{opacity:0;transform:translateX(-50%)translateY(-60px)} }
+
+/* ─────────────── LESSON ─────────────── */
+.lesson-header { padding: 16px; background: var(--red); color: white; }
+.lesson-progress { display: flex; gap: 6px; margin-bottom: 12px; }
+.lesson-dot { flex: 1; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.3); }
+.lesson-dot.done { background: white; }
+.card-slide { padding: 0 16px; margin-top: 16px; }
+.slide-card { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 20px; box-shadow: var(--shadow); }
+.slide-title { font-size: 17px; font-weight: 700; color: var(--navy); margin-bottom: 14px; }
+.slide-point { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; font-size: 14px; line-height: 1.5; color: #333; }
+.slide-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; margin-top: 5px; }
+.story-box { background: #fff8e1; border-left: 4px solid var(--gold); padding: 14px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.6; color: #5D4037; }
+.fact-box { background: #e3f2fd; border-left: 4px solid #1565C0; padding: 14px; border-radius: 0 8px 8px 0; font-size: 14px; line-height: 1.6; color: #0D47A1; }
+
+/* QUIZ */
+.quiz-q { font-size: 16px; font-weight: 600; line-height: 1.5; margin-bottom: 20px; color: var(--navy); }
+.option-btn { display: block; width: 100%; text-align: left; padding: 14px 16px; border-radius: 10px; border: 2px solid var(--border); background: white; font-size: 14px; cursor: pointer; margin-bottom: 10px; transition: all 0.2s; }
+.option-btn:hover { border-color: var(--red); background: #fff5f5; }
+.option-btn.correct { border-color: var(--green2); background: #e8f5e9; color: var(--green); font-weight: 600; }
+.option-btn.wrong { border-color: #f44336; background: #ffebee; color: #c62828; }
+.quiz-result { text-align: center; padding: 30px 20px; }
+.result-score { font-size: 52px; font-weight: 800; color: var(--red); }
+.result-sub { font-size: 16px; color: var(--muted); margin: 8px 0 20px; }
+.result-rewards { display: flex; gap: 12px; justify-content: center; margin-bottom: 24px; }
+.reward-pill { background: var(--bg); border-radius: 20px; padding: 8px 16px; font-size: 14px; font-weight: 600; color: var(--navy); border: 1px solid var(--border); }
+
+/* ─────────────── VESTWORLD ─────────────── */
+.world-map { position: relative; margin: 12px 16px; border-radius: var(--radius); overflow: hidden; background: linear-gradient(135deg, #e8f5e9, #e3f2fd); border: 1px solid var(--border); }
+.world-title { position: absolute; top: 12px; left: 14px; font-weight: 700; font-size: 15px; color: var(--navy); z-index: 2; }
+.building-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 16px; margin-top: 24px; }
+.building-btn { background: white; border-radius: var(--radius); border: 1px solid var(--border); padding: 18px 12px; text-align: center; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow); }
+.building-btn:hover { transform: translateY(-3px); border-color: var(--red); box-shadow: 0 6px 20px rgba(204,0,0,0.15); }
+.building-btn .b-icon { font-size: 36px; margin-bottom: 8px; }
+.building-btn .b-name { font-size: 13px; font-weight: 600; color: var(--navy); }
+.building-btn .b-desc { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+/* LIFE EVENT MODAL */
+.modal-overlay { display:none; position:fixed; top:0;left:0;right:0;bottom:0; background:rgba(0,0,0,0.5); z-index:500; align-items:center; justify-content:center; padding: 20px; }
+.modal-overlay.open { display:flex; }
+.modal { background:white; border-radius:var(--radius); padding:24px; max-width:400px; width:100%; box-shadow:0 20px 60px rgba(0,0,0,0.3); animation: modal-in 0.3s ease; }
+@keyframes modal-in { 0%{transform:scale(0.9);opacity:0} 100%{transform:scale(1);opacity:1} }
+.modal-title { font-size:18px; font-weight:700; margin-bottom:8px; color:var(--navy); }
+.modal-desc { font-size:14px; color:var(--muted); margin-bottom:20px; line-height:1.5; }
+.modal-choice { display:block; width:100%; text-align:left; padding:14px 16px; border-radius:10px; border:2px solid var(--border); background:white; font-size:14px; cursor:pointer; margin-bottom:10px; transition:all 0.2s; font-family:inherit; }
+.modal-choice:hover { border-color:var(--red); background:#fff5f5; }
+.modal-outcome { background: #f0fff4; border: 1px solid var(--green2); border-radius:10px; padding:14px; font-size:14px; color:var(--green); line-height:1.5; margin-bottom:16px; }
+
+/* ─────────────── STOCKS ─────────────── */
+.stock-card { background:white; border-radius:var(--radius); border:1px solid var(--border); padding:14px; margin:0 16px 10px; box-shadow:var(--shadow); }
+.stock-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.stock-symbol { font-weight:700; font-size:14px; color:var(--navy); }
+.stock-name { font-size:12px; color:var(--muted); }
+.stock-price { font-size:20px; font-weight:700; }
+.stock-change { font-size:13px; font-weight:600; padding:3px 8px; border-radius:10px; }
+.change-up { color: var(--green); background:#e8f5e9; }
+.change-down { color:#c62828; background:#ffebee; }
+.mini-chart { height: 40px; margin: 8px 0; }
+.stock-actions { display:flex; gap:8px; margin-top:10px; }
+.qty-input { width:70px; padding:6px 10px; border:1px solid var(--border); border-radius:20px; font-size:13px; text-align:center; outline:none; }
+
+/* ─────────────── PORTFOLIO ─────────────── */
+.networth-card { background: linear-gradient(135deg, var(--navy), #2C3E7B); color:white; border-radius:var(--radius); margin:12px 16px; padding:20px; }
+.nw-amount { font-size:32px; font-weight:800; margin:6px 0; }
+.allocation-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 16px 8px; }
+.alloc-card { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:14px; text-align:center; }
+.alloc-val { font-size:18px; font-weight:700; color:var(--navy); }
+.alloc-lbl { font-size:11px; color:var(--muted); margin-top:2px; }
+.holding-row { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid var(--border); }
+.holding-pl { font-size:13px; font-weight:600; }
+.pl-pos { color:var(--green); }
+.pl-neg { color:#c62828; }
+
+/* BANK */
+.bank-card { background: linear-gradient(135deg, #0D47A1, #1565C0); color:white; border-radius:var(--radius); margin:12px 16px; padding:20px; }
+.bank-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 16px 12px; }
+.bank-input { width:100%; padding:12px 16px; border-radius:25px; border:1px solid var(--border); font-size:14px; outline:none; margin:0 16px 12px; width:calc(100% - 32px); }
+
+/* ─────────────── LEADERBOARD ─────────────── */
+.lb-row { display:flex; align-items:center; gap:12px; padding:12px 16px; border-bottom:1px solid var(--border); }
+.lb-rank { width:28px; font-weight:700; font-size:16px; color:var(--muted); flex-shrink:0; }
+.lb-rank.top1 { color:#FFD700; }
+.lb-rank.top2 { color:#C0C0C0; }
+.lb-rank.top3 { color:#CD7F32; }
+.lb-avatar { width:40px; height:40px; border-radius:50%; background:var(--red); color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-shrink:0; }
+.lb-me .lb-avatar { background:var(--navy); }
+.lb-name { flex:1; font-weight:600; font-size:14px; }
+.lb-xp { font-size:13px; color:var(--muted); }
+
+/* BADGES */
+.badges-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; padding:0 16px 16px; }
+.badge-item { background:white; border:1px solid var(--border); border-radius:var(--radius); padding:12px 8px; text-align:center; }
+.badge-item.unlocked { border-color:var(--gold); background:#fffde7; }
+.badge-icon-big { font-size:28px; margin-bottom:6px; }
+.badge-item.locked .badge-icon-big { filter:grayscale(1); opacity:0.4; }
+.badge-name { font-size:10px; font-weight:600; color:var(--navy); line-height:1.3; }
+.badge-item.locked .badge-name { color:var(--muted); }
+
+/* ─────────────── PROFILE ─────────────── */
+.profile-header { background:linear-gradient(135deg,var(--red),var(--red2)); color:white; padding:30px 20px 20px; text-align:center; }
+.avatar-big { width:80px; height:80px; border-radius:50%; background:rgba(255,255,255,0.2); border:3px solid white; display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; margin:0 auto 12px; }
+.profile-name { font-size:22px; font-weight:700; }
+.profile-tag { font-size:13px; opacity:0.85; margin-top:4px; }
+.profile-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--border); border-top:1px solid rgba(255,255,255,0.2); }
+.pstat { background:white; padding:14px 8px; text-align:center; }
+.pstat-val { font-size:18px; font-weight:700; color:var(--red); }
+.pstat-lbl { font-size:11px; color:var(--muted); }
+.cert-card { margin:0 16px 12px; padding:16px; background:linear-gradient(135deg,#fff8e1,#fffde7); border:2px solid var(--gold); border-radius:var(--radius); display:flex; align-items:center; gap:14px; cursor:pointer; }
+
+/* TOAST */
+.toast { position:fixed; bottom:90px; left:50%; transform:translateX(-50%); background:var(--navy); color:white; padding:12px 20px; border-radius:25px; font-size:13px; font-weight:600; z-index:1000; opacity:0; transition:opacity 0.3s; pointer-events:none; white-space:nowrap; }
+.toast.show { opacity:1; }
+
+/* BUSINESS */
+.biz-option { background:white; border:2px solid var(--border); border-radius:var(--radius); padding:16px; margin:0 16px 10px; cursor:pointer; transition:all 0.2s; }
+.biz-option:hover { border-color:var(--red); }
+.biz-option.selected { border-color:var(--red); background:#fff5f5; }
+.biz-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.biz-name { font-size:15px; font-weight:700; }
+.biz-cost { font-size:13px; font-weight:600; color:var(--red); }
+.biz-desc { font-size:13px; color:var(--muted); line-height:1.4; }
+.risk-badge { font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600; }
+.risk-low { background:#e8f5e9; color:var(--green); }
+.risk-med { background:#fff8e1; color:#E65100; }
+.risk-high { background:#ffebee; color:#c62828; }
+
+/* PROPERTY */
+.prop-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 16px 16px; }
+.prop-card { background:white; border:2px solid var(--border); border-radius:var(--radius); padding:16px; text-align:center; cursor:pointer; transition:all 0.2s; }
+.prop-card:hover { border-color:var(--red); transform:translateY(-2px); }
+.prop-icon { font-size:32px; margin-bottom:8px; }
+.prop-name { font-size:13px; font-weight:700; color:var(--navy); }
+.prop-price { font-size:12px; color:var(--red); font-weight:600; margin-top:4px; }
+.prop-rent { font-size:11px; color:var(--green); margin-top:2px; }
+
+/* Responsive touches */
+@media(max-width:400px) { .building-grid{grid-template-columns:1fr 1fr} .badges-grid{grid-template-columns:repeat(4,1fr)} }
+
+/* MINI SPARKLINE */
+canvas.sparkline { width:100%; height:40px; display:block; }
+
+.tab-row { display:flex; border-bottom:2px solid var(--border); margin:0 16px 12px; gap:0; }
+.tab-btn { flex:1; padding:10px; border:none; background:none; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; }
+.tab-btn.active { color:var(--red); border-bottom-color:var(--red); }
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+</style>
+</head>
+<body>
+<div class="app-shell">
+
+<!-- ══════════════ ONBOARDING ══════════════ -->
+<div id="screen-onboard" class="screen active">
+  <div class="onboard-logo">LearnVest</div>
+  <div class="onboard-tagline">Learn Money. Play Smart. Build Wealth.</div>
+  <div class="onboard-fox">
+    <div class="fox-wrap fox-wave" id="onboard-fox" style="animation:wave-anim 1.1s ease-in-out infinite alternate;">
+      <svg width="140" height="200" viewBox="0 0 170 260">
+        <g class="tail"><ellipse cx="22" cy="185" rx="22" ry="40" fill="#E8480A" transform="rotate(-30 22 185)"/><ellipse cx="18" cy="180" rx="14" ry="28" fill="#F26020" transform="rotate(-30 18 180)"/><ellipse cx="15" cy="175" rx="7" ry="14" fill="#FFF0E0" transform="rotate(-30 15 175)"/></g>
+        <rect x="42" y="115" width="86" height="95" rx="14" fill="#8A8FA0"/>
+        <rect x="62" y="115" width="46" height="90" rx="8" fill="#9AA0B0"/>
+        <rect x="68" y="115" width="34" height="75" rx="4" fill="#F0F0F0"/>
+        <polygon points="85,120 80,145 85,165 90,145" fill="#CC0000"/>
+        <rect x="82" y="118" width="6" height="10" rx="2" fill="#AA0000"/>
+        <polygon points="62,115 75,130 62,145" fill="#7A7F90"/>
+        <polygon points="108,115 95,130 108,145" fill="#7A7F90"/>
+        <rect x="48" y="195" width="74" height="10" rx="4" fill="#8B5E3C"/>
+        <rect x="78" y="193" width="14" height="14" rx="3" fill="#D4A820"/>
+        <g><rect x="28" y="130" width="20" height="55" rx="10" fill="#8A8FA0"/><ellipse cx="38" cy="188" rx="11" ry="10" fill="#5C3A1E"/><rect x="20" y="195" width="42" height="30" rx="5" fill="#8B5E3C"/><rect x="34" y="190" width="14" height="9" rx="4" fill="none" stroke="#8B5E3C" stroke-width="3"/><rect x="20" y="209" width="42" height="3" rx="1" fill="#7A5030"/><rect x="37" y="197" width="8" height="8" rx="2" fill="#D4A820"/></g>
+        <g class="wing-l"><rect x="122" y="120" width="20" height="50" rx="10" fill="#8A8FA0" transform="rotate(-25 132 130)"/><ellipse cx="138" cy="88" rx="11" ry="10" fill="#5C3A1E"/><rect x="126" y="62" width="28" height="18" rx="2" fill="#4CAF50" transform="rotate(-10 140 71)"/><rect x="130" y="58" width="28" height="18" rx="2" fill="#66BB6A" transform="rotate(0 144 67)"/><rect x="134" y="54" width="28" height="18" rx="2" fill="#81C784" transform="rotate(10 148 63)"/><text x="140" y="72" text-anchor="middle" font-size="8" font-weight="bold" fill="#2E7D32">₹</text></g>
+        <g class="chart-screen"><rect x="52" y="150" width="44" height="34" rx="4" fill="#1B2B4B"/><rect x="57" y="162" width="4" height="12" rx="1" fill="#CC0000"/><rect x="63" y="158" width="4" height="16" rx="1" fill="#4CAF50"/><rect x="69" y="165" width="4" height="9" rx="1" fill="#CC0000"/><rect x="75" y="154" width="4" height="18" rx="1" fill="#4CAF50"/><rect x="81" y="160" width="4" height="12" rx="1" fill="#4CAF50"/><polyline points="57,172 63,165 69,170 75,158 81,163" fill="none" stroke="#F0A500" stroke-width="1.5"/></g>
+        <circle class="coin1" cx="118" cy="110" r="9" fill="#F0A500"/><text class="coin1" x="118" y="114" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">₹</text>
+        <circle class="coin2" cx="132" cy="100" r="7" fill="#F0C030"/><text class="coin2" x="132" y="104" text-anchor="middle" font-size="7" font-weight="bold" fill="#fff">₹</text>
+        <circle class="coin3" cx="108" cy="95" r="6" fill="#F0A500"/><text class="coin3" x="108" y="99" text-anchor="middle" font-size="6" font-weight="bold" fill="#fff">₹</text>
+        <rect x="55" y="205" width="22" height="45" rx="10" fill="#7A7F90"/><rect x="83" y="205" width="22" height="45" rx="10" fill="#7A7F90"/>
+        <ellipse cx="66" cy="250" rx="16" ry="9" fill="#2C2C2C"/><ellipse cx="94" cy="250" rx="16" ry="9" fill="#2C2C2C"/>
+        <ellipse cx="85" cy="72" rx="38" ry="36" fill="#E8480A"/>
+        <polygon points="52,42 44,15 66,35" fill="#E8480A"/><polygon points="54,40 48,20 64,35" fill="#F26020"/>
+        <polygon points="118,42 126,15 104,35" fill="#E8480A"/><polygon points="116,40 122,20 106,35" fill="#F26020"/>
+        <ellipse cx="85" cy="85" rx="24" ry="18" fill="#FFF0D0"/>
+        <ellipse cx="85" cy="90" rx="12" ry="8" fill="#F0D0A0"/>
+        <ellipse cx="85" cy="86" rx="5" ry="4" fill="#2C2C2C"/>
+        <ellipse cx="73" cy="68" rx="9" ry="8" fill="white"/><ellipse cx="97" cy="68" rx="9" ry="8" fill="white"/>
+        <circle cx="75" cy="69" r="5" fill="#2E7D32"/><circle cx="99" cy="69" r="5" fill="#2E7D32"/>
+        <circle cx="76" cy="68" r="2" fill="black"/><circle cx="100" cy="68" r="2" fill="black"/>
+        <circle cx="77" cy="67" r="1" fill="white"/><circle cx="101" cy="67" r="1" fill="white"/>
+        <path d="M78 96 Q85 103 92 96" stroke="#8B4513" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <g><polyline points="46,55 52,35 60,45 72,22" fill="none" stroke="#4CAF50" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><polygon points="72,22 60,24 68,32" fill="#4CAF50"/></g>
+      </svg>
+    </div>
+  </div>
+  <input class="name-input" id="player-name-input" placeholder="Enter your name..." maxlength="20"/>
+  <div style="font-size:13px;opacity:0.8;text-align:center;margin-bottom:12px;">Choose your learning path:</div>
+  <div class="age-grid">
+    <div class="age-card" data-age="10-13" onclick="selectAge(this)"><div class="age-icon">🌱</div><div class="age-label">Beginner</div><div class="age-range">Ages 10–13</div></div>
+    <div class="age-card selected" data-age="14-17" onclick="selectAge(this)"><div class="age-icon">📚</div><div class="age-label">Builder</div><div class="age-range">Ages 14–17</div></div>
+    <div class="age-card" data-age="18-22" onclick="selectAge(this)"><div class="age-icon">🚀</div><div class="age-label">Master</div><div class="age-range">Ages 18–22</div></div>
+  </div>
+  <button class="btn btn-full" style="background:white;color:var(--red);font-size:16px;padding:16px;border-radius:25px;" onclick="startApp()">Start Learning →</button>
+</div>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div id="screen-home" class="screen">
+  <div class="topbar"><div class="topbar-brand">🦊 LearnVest</div><div class="topbar-stats"><div class="stat-pill">⚡ <span id="hdr-xp">0</span></div><div class="stat-pill">💰 <span id="hdr-coins">0</span></div></div></div>
+
+  <div style="padding:0 16px; margin-top:14px;" class="mascot-container">
+    <div class="bubble" id="home-bubble">Hey! The market waits for no one. Let's learn! 📈</div>
+    <div class="fox-wrap fox-idle" id="main-fox" onclick="foxTap()">
+      <svg width="110" height="160" viewBox="0 0 170 260">
+        <g class="tail"><ellipse cx="22" cy="185" rx="22" ry="40" fill="#E8480A" transform="rotate(-30 22 185)"/><ellipse cx="18" cy="180" rx="14" ry="28" fill="#F26020" transform="rotate(-30 18 180)"/><ellipse cx="15" cy="175" rx="7" ry="14" fill="#FFF0E0" transform="rotate(-30 15 175)"/></g>
+        <rect x="42" y="115" width="86" height="95" rx="14" fill="#8A8FA0"/>
+        <rect x="62" y="115" width="46" height="90" rx="8" fill="#9AA0B0"/>
+        <rect x="68" y="115" width="34" height="75" rx="4" fill="#F0F0F0"/>
+        <polygon points="85,120 80,145 85,165 90,145" fill="#CC0000"/>
+        <rect x="82" y="118" width="6" height="10" rx="2" fill="#AA0000"/>
+        <polygon points="62,115 75,130 62,145" fill="#7A7F90"/><polygon points="108,115 95,130 108,145" fill="#7A7F90"/>
+        <rect x="48" y="195" width="74" height="10" rx="4" fill="#8B5E3C"/><rect x="78" y="193" width="14" height="14" rx="3" fill="#D4A820"/>
+        <g><rect x="28" y="130" width="20" height="55" rx="10" fill="#8A8FA0"/><ellipse cx="38" cy="188" rx="11" ry="10" fill="#5C3A1E"/><rect x="20" y="195" width="42" height="30" rx="5" fill="#8B5E3C"/><rect x="34" y="190" width="14" height="9" rx="4" fill="none" stroke="#8B5E3C" stroke-width="3"/><rect x="20" y="209" width="42" height="3" rx="1" fill="#7A5030"/><rect x="37" y="197" width="8" height="8" rx="2" fill="#D4A820"/></g>
+        <g class="wing-l"><rect x="122" y="120" width="20" height="50" rx="10" fill="#8A8FA0" transform="rotate(-25 132 130)"/><ellipse cx="138" cy="88" rx="11" ry="10" fill="#5C3A1E"/><rect x="126" y="62" width="28" height="18" rx="2" fill="#4CAF50" transform="rotate(-10 140 71)"/><rect x="130" y="58" width="28" height="18" rx="2" fill="#66BB6A" transform="rotate(0 144 67)"/><rect x="134" y="54" width="28" height="18" rx="2" fill="#81C784" transform="rotate(10 148 63)"/><text x="140" y="72" text-anchor="middle" font-size="8" font-weight="bold" fill="#2E7D32">₹</text></g>
+        <g class="chart-screen"><rect x="52" y="150" width="44" height="34" rx="4" fill="#1B2B4B"/><rect x="57" y="162" width="4" height="12" rx="1" fill="#CC0000"/><rect x="63" y="158" width="4" height="16" rx="1" fill="#4CAF50"/><rect x="69" y="165" width="4" height="9" rx="1" fill="#CC0000"/><rect x="75" y="154" width="4" height="18" rx="1" fill="#4CAF50"/><rect x="81" y="160" width="4" height="12" rx="1" fill="#4CAF50"/><polyline points="57,172 63,165 69,170 75,158 81,163" fill="none" stroke="#F0A500" stroke-width="1.5"/></g>
+        <circle class="coin1" cx="118" cy="110" r="9" fill="#F0A500"/><text class="coin1" x="118" y="114" text-anchor="middle" font-size="8" fill="#fff">₹</text>
+        <circle class="coin2" cx="132" cy="100" r="7" fill="#F0C030"/><text class="coin2" x="132" y="104" text-anchor="middle" font-size="7" fill="#fff">₹</text>
+        <circle class="coin3" cx="108" cy="95" r="6" fill="#F0A500"/><text class="coin3" x="108" y="99" text-anchor="middle" font-size="6" fill="#fff">₹</text>
+        <rect x="55" y="205" width="22" height="45" rx="10" fill="#7A7F90"/><rect x="83" y="205" width="22" height="45" rx="10" fill="#7A7F90"/>
+        <ellipse cx="66" cy="250" rx="16" ry="9" fill="#2C2C2C"/><ellipse cx="94" cy="250" rx="16" ry="9" fill="#2C2C2C"/>
+        <ellipse cx="85" cy="72" rx="38" ry="36" fill="#E8480A"/>
+        <polygon points="52,42 44,15 66,35" fill="#E8480A"/><polygon points="54,40 48,20 64,35" fill="#F26020"/>
+        <polygon points="118,42 126,15 104,35" fill="#E8480A"/><polygon points="116,40 122,20 106,35" fill="#F26020"/>
+        <ellipse cx="85" cy="85" rx="24" ry="18" fill="#FFF0D0"/>
+        <ellipse cx="85" cy="90" rx="12" ry="8" fill="#F0D0A0"/>
+        <ellipse cx="85" cy="86" rx="5" ry="4" fill="#2C2C2C"/>
+        <g id="fox-eyes-normal"><ellipse cx="73" cy="68" rx="9" ry="8" fill="white"/><ellipse cx="97" cy="68" rx="9" ry="8" fill="white"/><circle cx="75" cy="69" r="5" fill="#2E7D32"/><circle cx="99" cy="69" r="5" fill="#2E7D32"/><circle cx="76" cy="68" r="2" fill="black"/><circle cx="100" cy="68" r="2" fill="black"/><circle cx="77" cy="67" r="1" fill="white"/><circle cx="101" cy="67" r="1" fill="white"/><path d="M66 61 Q73 57 80 61" stroke="#CC4400" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M90 61 Q97 57 104 61" stroke="#CC4400" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+        <g id="fox-eyes-happy" style="display:none"><path d="M65 70 Q73 61 81 70" stroke="#2E7D32" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M89 70 Q97 61 105 70" stroke="#2E7D32" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M66 62 Q73 58 80 62" stroke="#CC4400" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M90 62 Q97 58 104 62" stroke="#CC4400" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+        <g id="fox-eyes-sad" style="display:none"><ellipse cx="73" cy="70" rx="8" ry="7" fill="white"/><ellipse cx="97" cy="70" rx="8" ry="7" fill="white"/><circle cx="74" cy="71" r="4" fill="#2E7D32"/><circle cx="98" cy="71" r="4" fill="#2E7D32"/><path d="M66 64 Q73 68 80 64" stroke="#CC4400" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M90 64 Q97 68 104 64" stroke="#CC4400" stroke-width="2.5" fill="none" stroke-linecap="round"/></g>
+        <path id="fox-mouth-n" d="M78 96 Q85 103 92 96" stroke="#8B4513" stroke-width="2" fill="none" stroke-linecap="round"/>
+        <path id="fox-mouth-h" d="M74 96 Q85 107 96 96" stroke="#8B4513" stroke-width="2.5" fill="none" stroke-linecap="round" style="display:none"/>
+        <path id="fox-mouth-s" d="M76 100 Q85 95 94 100" stroke="#8B4513" stroke-width="2" fill="none" stroke-linecap="round" style="display:none"/>
+        <g id="fox-arrow"><polyline points="46,55 52,35 60,45 72,22" fill="none" stroke="#4CAF50" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><polygon points="72,22 60,24 68,32" fill="#4CAF50"/></g>
+      </svg>
+    </div>
+    <div class="xp-float" id="xp-float">+20 XP</div>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-box"><div class="val" id="home-xp">0</div><div class="lbl">⚡ XP</div></div>
+    <div class="stat-box"><div class="val" id="home-streak">0</div><div class="lbl">🔥 Streak</div></div>
+    <div class="stat-box"><div class="val" id="home-coins">0</div><div class="lbl">💰 VestCoins</div></div>
+  </div>
+
+  <div class="daily-card">
+    <div class="daily-title">🎯 Daily Mission</div>
+    <div class="daily-text">Complete 1 lesson + make 1 investment in Dalal Street</div>
+    <div class="progress-bar"><div class="progress-fill" id="daily-progress" style="width:0%"></div></div>
+  </div>
+
+  <div class="section-title">Your Learning Path 📚</div>
+  <div class="path-container" id="lesson-path"></div>
+</div>
+
+<!-- ══════════════ LESSON SCREEN ══════════════ -->
+<div id="screen-lesson" class="screen">
+  <div class="lesson-header">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+      <button onclick="showScreen('home')" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;">←</button>
+      <div style="flex:1">
+        <div id="lesson-title-hdr" style="font-size:16px;font-weight:700;color:white;"></div>
+        <div id="lesson-xp-badge" style="font-size:12px;opacity:0.85;"></div>
+      </div>
+    </div>
+    <div class="lesson-progress" id="lesson-progress-dots"></div>
+  </div>
+  <div id="lesson-content"></div>
+  <div style="padding:16px;margin-top:auto;">
+    <button id="lesson-next-btn" class="btn btn-red btn-full" onclick="lessonNext()">Next →</button>
+  </div>
+</div>
+
+<!-- ══════════════ QUIZ SCREEN ══════════════ -->
+<div id="screen-quiz" class="screen">
+  <div class="lesson-header">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:16px;font-weight:700;color:white;">Quiz Time! 🧠</div>
+      <div style="margin-left:auto;font-size:13px;opacity:0.85;" id="quiz-counter">Q 1/3</div>
+    </div>
+    <div style="margin-top:10px;" class="progress-bar"><div class="progress-fill" id="quiz-progress-bar" style="width:33%"></div></div>
+  </div>
+  <div style="padding:16px;" id="quiz-content"></div>
+</div>
+
+<!-- ══════════════ VESTWORLD ══════════════ -->
+<div id="screen-world" class="screen">
+  <div class="topbar"><div class="topbar-brand">🌍 VestWorld</div><div class="topbar-stats"><div class="stat-pill">💰 <span id="world-coins">0</span></div></div></div>
+  <div style="margin:12px 16px 0;padding:16px;background:linear-gradient(135deg,#1a3a1a,#2d5a2d);border-radius:var(--radius);color:white;text-align:center;">
+    <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Welcome to VestWorld 🌆</div>
+    <div style="font-size:12px;opacity:0.8;">Your virtual Indian city. Build wealth, face real-life challenges!</div>
+  </div>
+  <div class="building-grid">
+    <div class="building-btn" onclick="goTo('stocks')"><div class="b-icon">📈</div><div class="b-name">Dalal Street</div><div class="b-desc">Buy & sell stocks</div></div>
+    <div class="building-btn" onclick="goTo('bank')"><div class="b-icon">🏦</div><div class="b-name">VestBank</div><div class="b-desc">Save & earn interest</div></div>
+    <div class="building-btn" onclick="openBusiness()"><div class="b-icon">🏭</div><div class="b-name">My Business</div><div class="b-desc">Start & grow ventures</div></div>
+    <div class="building-btn" onclick="openProperty()"><div class="b-icon">🏠</div><div class="b-name">Real Estate</div><div class="b-desc">Buy virtual property</div></div>
+    <div class="building-btn" onclick="triggerEvent()"><div class="b-icon">🎲</div><div class="b-name">Life Events</div><div class="b-desc">Random challenges</div></div>
+    <div class="building-btn" onclick="goTo('portfolio')"><div class="b-icon">💼</div><div class="b-name">Portfolio</div><div class="b-desc">Track net worth</div></div>
+  </div>
+  <div id="world-business-panel" style="display:none;">
+    <div class="section-title">🏭 My Business</div>
+    <div id="business-display"></div>
+  </div>
+</div>
+
+<!-- ══════════════ STOCKS ══════════════ -->
+<div id="screen-stocks" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;"><button onclick="goTo('world')" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;">←</button><div class="topbar-brand">📈 Dalal Street</div></div>
+    <div class="stat-pill">💰 <span id="stocks-coins">0</span></div>
+  </div>
+  <div style="margin:12px 16px;padding:14px;background:var(--navy);border-radius:var(--radius);color:white;font-size:13px;">
+    🦊 <i>"Buy low, sell high — but nobody times it perfectly. Stay consistent!"</i>
+  </div>
+  <div id="stocks-list"></div>
+</div>
+
+<!-- ══════════════ BANK ══════════════ -->
+<div id="screen-bank" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;"><button onclick="goTo('world')" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;">←</button><div class="topbar-brand">🏦 VestBank</div></div>
+    <div class="stat-pill">💰 <span id="bank-coins">0</span></div>
+  </div>
+  <div class="bank-card">
+    <div style="font-size:13px;opacity:0.8;">Savings Balance</div>
+    <div style="font-size:36px;font-weight:800;margin:6px 0;" id="bank-savings">₹0</div>
+    <div style="font-size:12px;opacity:0.7;">Earning 5% p.a. interest | Interest earned: <span id="bank-interest">₹0</span></div>
+  </div>
+  <div style="padding:0 16px;">
+    <input class="bank-input" type="number" id="bank-amount" placeholder="Enter VestCoins amount..." min="1"/>
+  </div>
+  <div class="bank-actions">
+    <button class="btn btn-green" onclick="doDeposit()">💰 Deposit</button>
+    <button class="btn btn-outline" onclick="doWithdraw()">← Withdraw</button>
+  </div>
+  <div style="margin:0 16px;padding:16px;background:#e8f5e9;border-radius:var(--radius);border:1px solid #a5d6a7;">
+    <div style="font-weight:700;color:var(--green);margin-bottom:8px;">🏦 Fixed Deposit Options</div>
+    <div style="font-size:13px;color:#2E7D32;line-height:1.8;">
+      • <b>4-week FD</b>: Lock coins for 8% return (coming soon)<br>
+      • <b>12-week FD</b>: 10% return (coming soon)<br>
+      • Interest compounds weekly in your savings account
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PORTFOLIO ══════════════ -->
+<div id="screen-portfolio" class="screen">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px;"><button onclick="goTo('world')" style="background:rgba(255,255,255,0.2);border:none;color:white;border-radius:50%;width:34px;height:34px;font-size:18px;cursor:pointer;">←</button><div class="topbar-brand">💼 Portfolio</div></div>
+  </div>
+  <div class="networth-card">
+    <div style="font-size:13px;opacity:0.7;">Total Net Worth</div>
+    <div class="nw-amount" id="nw-total">₹0</div>
+    <div style="font-size:12px;opacity:0.6;margin-top:4px;" id="nw-sub"></div>
+  </div>
+  <div class="allocation-grid">
+    <div class="alloc-card"><div class="alloc-val" id="alloc-cash">₹0</div><div class="alloc-lbl">💰 Cash</div></div>
+    <div class="alloc-card"><div class="alloc-val" id="alloc-savings">₹0</div><div class="alloc-lbl">🏦 Savings</div></div>
+    <div class="alloc-card"><div class="alloc-val" id="alloc-stocks">₹0</div><div class="alloc-lbl">📈 Stocks</div></div>
+    <div class="alloc-card"><div class="alloc-val" id="alloc-property">₹0</div><div class="alloc-lbl">🏠 Property</div></div>
+  </div>
+  <div class="section-title">Holdings 📊</div>
+  <div id="holdings-list"><div style="padding:20px;text-align:center;color:var(--muted);font-size:14px;">No stock holdings yet. Visit Dalal Street!</div></div>
+  <div class="section-title" style="margin-top:8px;">Properties 🏠</div>
+  <div id="props-list"><div style="padding:20px;text-align:center;color:var(--muted);font-size:14px;">No properties yet.</div></div>
+</div>
+
+<!-- ══════════════ LEADERBOARD ══════════════ -->
+<div id="screen-leaderboard" class="screen">
+  <div class="topbar"><div class="topbar-brand">🏆 Leaderboard</div></div>
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchTab('lb-tab','rankings')">Rankings</button>
+    <button class="tab-btn" onclick="switchTab('lb-tab','badges')">Badges</button>
+  </div>
+  <div id="lb-tab-rankings" class="tab-content active">
+    <div id="lb-list"></div>
+  </div>
+  <div id="lb-tab-badges" class="tab-content">
+    <div class="badges-grid" id="badges-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════ PROFILE ══════════════ -->
+<div id="screen-profile" class="screen">
+  <div class="profile-header">
+    <div class="avatar-big" id="profile-avatar">A</div>
+    <div class="profile-name" id="profile-name">Arjun</div>
+    <div class="profile-tag">Money Master 🦊</div>
+  </div>
+  <div class="profile-stats">
+    <div class="pstat"><div class="pstat-val" id="prof-xp">0</div><div class="pstat-lbl">Total XP</div></div>
+    <div class="pstat"><div class="pstat-val" id="prof-lessons">0</div><div class="pstat-lbl">Lessons</div></div>
+    <div class="pstat"><div class="pstat-val" id="prof-streak">0</div><div class="pstat-lbl">Streak 🔥</div></div>
+  </div>
+  <div style="padding:16px;">
+    <div class="cert-card" onclick="showToast('🎓 Certificate downloaded! (Demo)')">
+      <div style="font-size:36px;">🏅</div>
+      <div><div style="font-weight:700;font-size:14px;color:var(--navy);">Financial Literacy Certificate</div><div style="font-size:12px;color:var(--muted);margin-top:4px;">LearnVest × SEBI Aligned · 2026</div></div>
+      <div style="margin-left:auto;font-size:20px;">⬇</div>
+    </div>
+  </div>
+  <div class="section-title">About LearnVest</div>
+  <div style="padding:0 16px 12px;font-size:13px;color:var(--muted);line-height:1.7;">
+    LearnVest is a gamified financial literacy platform for Indian students aged 10–22. Built by Team B — TAPMI 2026.<br><br>
+    <b>Team:</b> Himanshi Dubey (CEO) · Deevij Rawul (CTO) · Saumil Garg (CMO) · Shivangi Goel (CPO) · Simran Pachori (CFO) · Drishti Patrikar (CCO)
+  </div>
+  <div style="padding:0 16px 16px;">
+    <button class="btn btn-outline btn-full" onclick="resetGame()" style="font-size:13px;">🔄 Reset Progress</button>
+  </div>
+</div>
+
+<!-- ══════════════ BUSINESS MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-business">
+  <div class="modal">
+    <div class="modal-title">🏭 Start Your Business</div>
+    <div class="modal-desc">Choose a business to build in VestWorld. Your virtual profits are collected weekly!</div>
+    <div id="biz-options"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button class="btn btn-red" style="flex:1" onclick="confirmBusiness()">Start Business</button>
+      <button class="btn btn-outline" onclick="closeModal('modal-business')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ PROPERTY MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-property">
+  <div class="modal">
+    <div class="modal-title">🏠 Buy Property</div>
+    <div class="modal-desc">Invest in virtual real estate. Properties earn monthly rent income!</div>
+    <div class="prop-grid" id="prop-options"></div>
+    <button class="btn btn-outline btn-full" onclick="closeModal('modal-property')" style="margin-top:4px;">Cancel</button>
+  </div>
+</div>
+
+<!-- ══════════════ LIFE EVENT MODAL ══════════════ -->
+<div class="modal-overlay" id="modal-event">
+  <div class="modal">
+    <div class="modal-title" id="event-title">Life Event</div>
+    <div class="modal-desc" id="event-desc"></div>
+    <div id="event-choices"></div>
+    <div id="event-outcome" class="modal-outcome" style="display:none;"></div>
+    <button id="event-close-btn" class="btn btn-red btn-full" style="display:none;margin-top:4px;" onclick="closeModal('modal-event')">Continue →</button>
+  </div>
+</div>
+
+<!-- ══════════════ BOTTOM NAV ══════════════ -->
+<div class="bottom-nav" id="bottom-nav" style="display:none;">
+  <button class="nav-btn active" data-screen="home" onclick="showScreen('home')"><div class="nav-icon">🏠</div><span>Home</span></button>
+  <button class="nav-btn" data-screen="world" onclick="showScreen('world')"><div class="nav-icon">🌍</div><span>VestWorld</span></button>
+  <button class="nav-btn" data-screen="leaderboard" onclick="showScreen('leaderboard')"><div class="nav-icon">🏆</div><span>Ranks</span></button>
+  <button class="nav-btn" data-screen="profile" onclick="showScreen('profile')"><div class="nav-icon">👤</div><span>Profile</span></button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────────────────
+let state = {};
+let currentLesson = null;
+let currentCard = 0;
+let currentQuiz = null;
+let currentQ = 0;
+let quizAnswers = [];
+let selectedBiz = null;
+let currentEventId = null;
+
+const FOX_MESSAGES = {
+  idle: ["Hey! The market waits for no one. Let's learn! 📈","93% of students graduate without financial education. Not you!","Complete today's lesson and earn VestCoins! 💰","Foxes are clever — and so are financially literate students!","Your streak is on fire! Keep investing in yourself 🔥","Small savings today = big wealth tomorrow. Trust the process!"],
+  tap: ["You tapped me! Buy my stocks instead 😂","Foxes always know where the money is! 🦊","Keep learning and I'll keep dancing! 💃","Let's go to Dalal Street! 📈"]
+};
+let idleIdx = 0;
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init() {
+  await loadState();
+  setInterval(bubbleCycle, 5000);
+  setInterval(stockTick, 8000);
+}
+
+async function loadState() {
+  const r = await fetch('/api/state');
+  state = await r.json();
+  updateUI();
+}
+
+function updateUI() {
+  // header
+  document.getElementById('hdr-xp').textContent = state.xp || 0;
+  document.getElementById('hdr-coins').textContent = fmt(state.coins || 0);
+  document.getElementById('home-xp').textContent = state.xp || 0;
+  document.getElementById('home-streak').textContent = state.streak || 0;
+  document.getElementById('home-coins').textContent = fmt(state.coins || 0);
+  document.getElementById('world-coins').textContent = fmt(state.coins || 0);
+  document.getElementById('stocks-coins').textContent = fmt(state.coins || 0);
+  document.getElementById('bank-coins').textContent = fmt(state.coins || 0);
+  // profile
+  const name = state.name || 'Student';
+  document.getElementById('profile-avatar').textContent = name[0].toUpperCase();
+  document.getElementById('profile-name').textContent = name;
+  document.getElementById('prof-xp').textContent = state.xp || 0;
+  document.getElementById('prof-lessons').textContent = (state.completed_lessons || []).length;
+  document.getElementById('prof-streak').textContent = state.streak || 0;
+  // daily progress
+  const done = (state.completed_lessons || []).length;
+  const pct = Math.min(100, done * 12.5);
+  document.getElementById('daily-progress').style.width = pct + '%';
+}
+
+// ── ONBOARDING ─────────────────────────────────────────────────────────────────
+function selectAge(el) {
+  document.querySelectorAll('.age-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+async function startApp() {
+  const name = document.getElementById('player-name-input').value.trim() || 'Arjun';
+  await fetch('/api/set_name', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name})});
+  await loadState();
+  buildLessonPath();
+  document.getElementById('bottom-nav').style.display = 'flex';
+  showScreen('home');
+  foxAnimate('wave');
+  setTimeout(() => foxAnimate('idle'), 1500);
+}
+
+// ── SCREENS ──────────────────────────────────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const nb = document.querySelector(`.nav-btn[data-screen="${name}"]`);
+  if (nb) nb.classList.add('active');
+  if (name === 'leaderboard') loadLeaderboard();
+  if (name === 'home') buildLessonPath();
+  if (name === 'portfolio') loadPortfolio();
+  if (name === 'bank') updateBankUI();
+  if (name === 'stocks') loadStocks();
+  window.scrollTo(0,0);
+}
+
+function goTo(name) { showScreen(name); }
+
+// ── LESSON PATH ──────────────────────────────────────────────────────────────
+async function buildLessonPath() {
+  const r = await fetch('/api/lessons');
+  const lessons = await r.json();
+  const container = document.getElementById('lesson-path');
+  container.innerHTML = '';
+  lessons.forEach((l, i) => {
+    const done = l.completed;
+    const current = !done && (i === 0 || lessons[i-1].completed);
+    const locked = !done && !current;
+    const div = document.createElement('div');
+    div.className = 'path-node' + (done?' completed':(current?' current':' locked'));
+    div.innerHTML = `
+      <div class="node-icon">${done ? '✅' : l.icon}</div>
+      <div class="node-info">
+        <div class="node-title">${l.title}</div>
+        <div class="node-meta">+${l.xp} XP · +${l.coins} VestCoins</div>
+      </div>
+      <div class="node-badge ${done?'badge-done':current?'badge-current':'badge-locked'}">${done?'Done':current?'Start':'🔒'}</div>`;
+    if (!locked) div.onclick = () => startLesson(l.id);
+    container.appendChild(div);
+  });
+}
+
+// ── LESSON ───────────────────────────────────────────────────────────────────
+async function startLesson(id) {
+  const r = await fetch('/api/lesson/' + id);
+  currentLesson = await r.json();
+  currentCard = 0;
+  showScreen('lesson');
+  document.getElementById('lesson-title-hdr').textContent = currentLesson.icon + ' ' + currentLesson.title;
+  document.getElementById('lesson-xp-badge').textContent = `+${currentLesson.xp} XP on completion`;
+  buildProgressDots();
+  renderCard();
+  foxAnimate('teach');
+}
+
+function buildProgressDots() {
+  const total = currentLesson.cards.length + 1;
+  const dots = document.getElementById('lesson-progress-dots');
+  dots.innerHTML = '';
+  for (let i = 0; i < total; i++) {
+    const d = document.createElement('div');
+    d.className = 'lesson-dot' + (i <= currentCard ? ' done' : '');
+    dots.appendChild(d);
+  }
+}
+
+function renderCard() {
+  const card = currentLesson.cards[currentCard];
+  const content = document.getElementById('lesson-content');
+  let html = `<div class="card-slide"><div class="slide-card">`;
+  if (card.points) {
+    html += `<div class="slide-title">${card.title}</div>`;
+    card.points.forEach(p => html += `<div class="slide-point"><div class="slide-dot"></div>${p}</div>`);
+  } else if (card.story) {
+    html += `<div class="slide-title">${card.title}</div><div class="story-box">📖 ${card.story}</div>`;
+  } else if (card.fact) {
+    html += `<div class="slide-title">${card.title}</div><div class="fact-box">💡 ${card.fact}</div>`;
+  }
+  html += `</div></div>`;
+  content.innerHTML = html;
+  buildProgressDots();
+  const btn = document.getElementById('lesson-next-btn');
+  btn.textContent = currentCard < currentLesson.cards.length - 1 ? 'Next →' : 'Take the Quiz! 🧠';
+}
+
+function lessonNext() {
+  if (currentCard < currentLesson.cards.length - 1) {
+    currentCard++;
+    renderCard();
+  } else {
+    startQuiz();
+  }
+}
+
+// ── QUIZ ──────────────────────────────────────────────────────────────────────
+function startQuiz() {
+  currentQuiz = currentLesson.quiz;
+  currentQ = 0;
+  quizAnswers = [];
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = currentQuiz[currentQ];
+  document.getElementById('quiz-counter').textContent = `Q ${currentQ+1}/${currentQuiz.length}`;
+  document.getElementById('quiz-progress-bar').style.width = ((currentQ+1)/currentQuiz.length*100) + '%';
+  let html = `<div class="quiz-q">${q.q}</div>`;
+  q.options.forEach((opt, i) => html += `<button class="option-btn" id="opt-${i}" onclick="answerQ(${i})">${String.fromCharCode(65+i)}. ${opt}</button>`);
+  document.getElementById('quiz-content').innerHTML = html;
+}
+
+async function answerQ(idx) {
+  const q = currentQuiz[currentQ];
+  const correct = idx === q.answer;
+  quizAnswers.push(correct);
+  document.querySelectorAll('.option-btn').forEach((b,i) => {
+    b.disabled = true;
+    if (i === q.answer) b.classList.add('correct');
+    else if (i === idx && !correct) b.classList.add('wrong');
+  });
+  foxAnimate(correct ? 'celebrate' : 'sad');
+  showBubble(correct ? '🔥 Correct! You\'re a financial genius!' : '❌ Not quite! Check the green answer and learn!');
+  await new Promise(r => setTimeout(r, 1400));
+  currentQ++;
+  if (currentQ < currentQuiz.length) {
+    renderQuestion();
+    foxAnimate('idle');
+  } else {
+    showQuizResult();
+  }
+}
+
+async function showQuizResult() {
+  const score = quizAnswers.filter(Boolean).length;
+  const r = await fetch('/api/complete_lesson', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({lesson_id: currentLesson.id, score})
+  });
+  const data = await r.json();
+  await loadState();
+  foxAnimate('spin');
+  showBubble(`LEVEL UP! +${data.earned_xp} XP earned! Keep going! 🚀`);
+  const content = document.getElementById('quiz-content');
+  content.innerHTML = `
+    <div class="quiz-result">
+      <div style="font-size:64px;margin-bottom:8px;">${score===3?'🎉':score>=2?'😊':'💪'}</div>
+      <div class="result-score">${score}/${currentQuiz.length}</div>
+      <div class="result-sub">${score===3?'Perfect score! Incredible!':score>=2?'Great work! Almost perfect!':'Good effort! Keep practicing!'}</div>
+      <div class="result-rewards">
+        <div class="reward-pill">⚡ +${data.earned_xp} XP</div>
+        <div class="reward-pill">💰 +${data.earned_coins} VestCoins</div>
+      </div>
+      <button class="btn btn-red btn-full" onclick="showScreen('home');buildLessonPath();">Back to Home 🏠</button>
+      <div style="margin-top:10px;"></div>
+      <button class="btn btn-navy btn-full" onclick="showScreen('world')">Go to VestWorld 🌍</button>
+    </div>`;
+  popXP(`+${data.earned_xp} XP`);
+}
+
+// ── FOX MASCOT ───────────────────────────────────────────────────────────────
+function foxAnimate(type) {
+  const fox = document.getElementById('main-fox');
+  if (!fox) return;
+  fox.className = 'fox-wrap fox-' + type;
+  const eyes = {normal: 'fox-eyes-normal', happy: 'fox-eyes-happy', sad: 'fox-eyes-sad'};
+  const mouths = {n: 'fox-mouth-n', h: 'fox-mouth-h', s: 'fox-mouth-s'};
+  const setFace = (e, m) => {
+    Object.values(eyes).forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+    Object.values(mouths).forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+    const ee = document.getElementById(eyes[e]); if(ee) ee.style.display='block';
+    const mm = document.getElementById(mouths[m]); if(mm) mm.style.display='block';
+  };
+  if (type==='celebrate'||type==='wave'||type==='spin') setFace('happy','h');
+  else if (type==='sad') setFace('sad','s');
+  else setFace('normal','n');
+  if (type!=='idle') setTimeout(() => { fox.className='fox-wrap fox-idle'; setFace('normal','n'); }, type==='teach'?2600:1900);
+}
+
+function foxTap() {
+  const msgs = FOX_MESSAGES.tap;
+  showBubble(msgs[Math.floor(Math.random()*msgs.length)]);
+  foxAnimate('wave');
+}
+
+function showBubble(msg) {
+  const b = document.getElementById('home-bubble');
+  if (b) { b.textContent = msg; b.style.opacity='0'; setTimeout(()=>b.style.opacity='1',50); }
+}
+
+function bubbleCycle() {
+  const fox = document.getElementById('main-fox');
+  if (fox && fox.classList.contains('fox-idle')) {
+    showBubble(FOX_MESSAGES.idle[idleIdx % FOX_MESSAGES.idle.length]);
+    idleIdx++;
+  }
+}
+
+function popXP(txt) {
+  const el = document.getElementById('xp-float');
+  if (!el) return;
+  el.textContent = txt;
+  el.classList.remove('pop');
+  void el.offsetWidth;
+  el.classList.add('pop');
+}
+
+// ── STOCKS ───────────────────────────────────────────────────────────────────
+let stockData = [];
+async function loadStocks() {
+  const r = await fetch('/api/stocks');
+  stockData = await r.json();
+  renderStocks();
+}
+
+function renderStocks() {
+  const list = document.getElementById('stocks-list');
+  if (!list) return;
+  list.innerHTML = stockData.map(s => {
+    const up = s.change >= 0;
+    const sparkId = 'spark-' + s.symbol;
+    const ownedInfo = s.owned > 0 ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">Owned: ${s.owned} shares @ ₹${s.avg_price}</div>` : '';
+    return `<div class="stock-card">
+      <div class="stock-header">
+        <div><div class="stock-symbol">${s.symbol}</div><div class="stock-name">${s.name} · ${s.sector}</div>${ownedInfo}</div>
+        <div style="text-align:right"><div class="stock-price" style="color:${up?'var(--green)':'#c62828'}">₹${s.price.toFixed(0)}</div><div class="stock-change ${up?'change-up':'change-down'}">${up?'▲':'▼'} ${Math.abs(s.change).toFixed(2)}%</div></div>
+      </div>
+      <canvas class="sparkline" id="${sparkId}" height="40"></canvas>
+      <div class="stock-actions">
+        <input class="qty-input" type="number" id="qty-${s.symbol}" value="1" min="1" max="100"/>
+        <button class="btn btn-green btn-sm" onclick="buyStock('${s.symbol}')">Buy</button>
+        <button class="btn btn-outline btn-sm" onclick="sellStock('${s.symbol}')" ${s.owned===0?'disabled':''}>Sell</button>
+      </div>
+    </div>`;
+  }).join('');
+  stockData.forEach(s => drawSparkline('spark-' + s.symbol, s.history));
+}
+
+function drawSparkline(id, data) {
+  const canvas = document.getElementById(id);
+  if (!canvas || data.length < 2) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 300, H = 40;
+  canvas.width = W; canvas.height = H;
+  const min = Math.min(...data), max = Math.max(...data), range = max - min || 1;
+  const pts = data.map((v,i) => [i/(data.length-1)*(W-4)+2, H-2-((v-min)/range)*(H-4)]);
+  const last = data[data.length-1], prev = data[data.length-2];
+  ctx.clearRect(0,0,W,H);
+  ctx.beginPath();
+  pts.forEach(([x,y],i) => i===0?ctx.moveTo(x,y):ctx.lineTo(x,y));
+  ctx.strokeStyle = last>=prev ? '#4CAF50' : '#f44336';
+  ctx.lineWidth = 1.8;
+  ctx.stroke();
+}
+
+async function buyStock(symbol) {
+  const qty = parseInt(document.getElementById('qty-' + symbol).value) || 1;
+  const r = await fetch('/api/buy_stock', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({symbol, qty})});
+  const d = await r.json();
+  if (d.error) { showToast('❌ ' + d.error); return; }
+  state.coins = d.coins;
+  updateUI();
+  showToast(`✅ Bought ${qty} share(s) of ${symbol}!`);
+  foxAnimate('celebrate');
+  showBubble('📈 Great investment! Buy the dip, hold long-term!');
+  loadStocks();
+}
+
+async function sellStock(symbol) {
+  const qty = parseInt(document.getElementById('qty-' + symbol).value) || 1;
+  const r = await fetch('/api/sell_stock', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({symbol, qty})});
+  const d = await r.json();
+  if (d.error) { showToast('❌ ' + d.error); return; }
+  state.coins = d.coins;
+  updateUI();
+  showToast(`💰 Sold ${qty} share(s) of ${symbol}!`);
+  loadStocks();
+}
+
+function stockTick() {
+  const scr = document.getElementById('screen-stocks');
+  if (scr && scr.classList.contains('active')) loadStocks();
+}
+
+// ── BANK ─────────────────────────────────────────────────────────────────────
+function updateBankUI() {
+  document.getElementById('bank-savings').textContent = '₹' + fmt(state.savings || 0);
+  document.getElementById('bank-interest').textContent = '₹' + fmt(state.savings_interest_earned || 0);
+  document.getElementById('bank-coins').textContent = fmt(state.coins || 0);
+}
+
+async function doDeposit() {
+  const amt = parseInt(document.getElementById('bank-amount').value) || 0;
+  if (amt <= 0) { showToast('Enter a valid amount'); return; }
+  const r = await fetch('/api/deposit', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({amount: amt})});
+  const d = await r.json();
+  if (d.error) { showToast('❌ ' + d.error); return; }
+  state.coins = d.coins; state.savings = d.savings;
+  updateUI(); updateBankUI();
+  showToast(`✅ Deposited ₹${fmt(amt)}! Earned ₹${d.interest_earned} interest!`);
+  foxAnimate('celebrate');
+  document.getElementById('bank-amount').value = '';
+}
+
+async function doWithdraw() {
+  const amt = parseInt(document.getElementById('bank-amount').value) || 0;
+  if (amt <= 0) { showToast('Enter a valid amount'); return; }
+  const r = await fetch('/api/withdraw', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({amount: amt})});
+  const d = await r.json();
+  if (d.error) { showToast('❌ ' + d.error); return; }
+  state.coins = d.coins; state.savings = d.savings;
+  updateUI(); updateBankUI();
+  showToast(`💰 Withdrew ₹${fmt(amt)}`);
+  document.getElementById('bank-amount').value = '';
+}
+
+// ── PORTFOLIO ─────────────────────────────────────────────────────────────────
+async function loadPortfolio() {
+  const sr = await fetch('/api/stocks');
+  const stocks = await sr.json();
+  let stockVal = 0;
+  stocks.forEach(s => { if(s.owned>0) stockVal += s.owned * s.price; });
+  const propVal = (state.properties || []).reduce((a,p) => a+p.value, 0);
+  const total = (state.coins||0) + (state.savings||0) + stockVal + propVal;
+  document.getElementById('nw-total').textContent = '₹' + fmt(Math.round(total));
+  document.getElementById('nw-sub').textContent = `Cash + Savings + Stocks + Property`;
+  document.getElementById('alloc-cash').textContent = '₹' + fmt(state.coins||0);
+  document.getElementById('alloc-savings').textContent = '₹' + fmt(state.savings||0);
+  document.getElementById('alloc-stocks').textContent = '₹' + fmt(Math.round(stockVal));
+  document.getElementById('alloc-property').textContent = '₹' + fmt(propVal);
+  const holdings = document.getElementById('holdings-list');
+  const ownedStocks = stocks.filter(s => s.owned > 0);
+  if (ownedStocks.length === 0) { holdings.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px;">No stock holdings yet. Visit Dalal Street!</div>'; }
+  else {
+    holdings.innerHTML = ownedStocks.map(s => {
+      const curVal = s.owned * s.price, cost = s.owned * s.avg_price;
+      const pl = curVal - cost, plPct = ((pl/cost)*100).toFixed(1);
+      const pos = pl >= 0;
+      return `<div class="holding-row">
+        <div><div style="font-weight:600;font-size:14px;">${s.symbol} · ${s.owned} shares</div><div style="font-size:12px;color:var(--muted);">Avg ₹${s.avg_price}</div></div>
+        <div style="text-align:right"><div style="font-weight:700;font-size:14px;">₹${fmt(Math.round(curVal))}</div><div class="holding-pl ${pos?'pl-pos':'pl-neg'}">${pos?'▲':'▼'} ₹${fmt(Math.abs(Math.round(pl)))} (${Math.abs(plPct)}%)</div></div>
+      </div>`;
+    }).join('');
+  }
+  const propsList = document.getElementById('props-list');
+  if ((state.properties||[]).length === 0) { propsList.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:14px;">No properties yet.</div>'; }
+  else {
+    propsList.innerHTML = (state.properties||[]).map(p => `<div class="holding-row"><div><div style="font-weight:600;font-size:14px;">${p.name}</div><div style="font-size:12px;color:var(--muted);">Monthly rent: ₹${p.rent} VestCoins</div></div><div style="font-weight:700;font-size:14px;color:var(--navy);">₹${fmt(p.value)}</div></div>`).join('');
+  }
+}
+
+// ── BUSINESS ─────────────────────────────────────────────────────────────────
+async function openBusiness() {
+  if (state.business) { showBusinessDashboard(); return; }
+  const r = await fetch('/api/state');
+  state = await r.json();
+  const opts = document.getElementById('biz-options');
+  const businesses = [{id:1,name:'Chai Stall ☕',cost:5000,base_revenue:800,risk:'low',desc:'Low investment, steady daily income.'},{id:2,name:'Mobile Repair 📱',cost:15000,base_revenue:2200,risk:'medium',desc:'Growing demand as smartphones rise.'},{id:3,name:'Online Store 👗',cost:20000,base_revenue:3500,risk:'medium',desc:'E-commerce booming in India!'},{id:4,name:'Tech Startup 💻',cost:50000,base_revenue:8000,risk:'high',desc:'High risk, high reward — India\'s startup ecosystem is #3 globally!'}];
+  opts.innerHTML = businesses.map(b => `
+    <div class="biz-option" id="biz-${b.id}" onclick="selectBiz(${b.id}, this)">
+      <div class="biz-header"><div class="biz-name">${b.name}</div><span class="risk-badge risk-${b.risk}">${b.risk} risk</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:4px 0 6px;">
+        <div class="biz-cost">Cost: ₹${fmt(b.cost)} VestCoins</div>
+        <div style="font-size:12px;color:var(--green);">+₹${fmt(b.base_revenue)}/week</div>
+      </div>
+      <div class="biz-desc">${b.desc}</div>
+    </div>`).join('');
+  selectedBiz = null;
+  document.getElementById('modal-business').classList.add('open');
+}
+
+function selectBiz(id, el) {
+  document.querySelectorAll('.biz-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedBiz = id;
+}
+
+async function confirmBusiness() {
+  if (!selectedBiz) { showToast('Select a business first!'); return; }
+  const r = await fetch('/api/start_business', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({business_id: selectedBiz})});
+  const d = await r.json();
+  if (d.error) { showToast('❌ ' + d.error); return; }
+  state = {...state, ...d};
+  closeModal('modal-business');
+  showToast('🎉 Business started! Collect profits weekly!');
+  foxAnimate('spin');
+  showBusinessDashboard();
+}
+
+function showBusinessDashboard() {
+  if (!state.business) return;
+  const biz = state.business;
+  const panel = document.getElementById('world-business-panel');
+  panel.style.display = 'block';
+  panel.innerHTML = `
+    <div class="section-title">🏭 ${biz.name}</div>
+    <div class="card" style="margin:0 16px 12px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+        <div style="text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--green);">₹${fmt(biz.revenue)}</div><div style="font-size:11px;color:var(--muted);">Weekly Revenue</div></div>
+        <div style="text-align:center;"><div style="font-size:18px;font-weight:700;color:#c62828;">₹${fmt(biz.expenses)}</div><div style="font-size:11px;color:var(--muted);">Weekly Expenses</div></div>
+      </div>
+      <div style="text-align:center;margin-bottom:14px;"><div style="font-size:24px;font-weight:800;color:var(--navy);">₹${fmt(biz.revenue-biz.expenses)}</div><div style="font-size:12px;color:var(--muted);">Est. Weekly Profit</div></div>
+      <div class="progress-bar" style="margin-bottom:14px;"><div class="progress-fill green" style="width:${Math.min(100,(biz.weeks_running||0)*10)}%"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Week ${biz.weeks_running||0} · Growing ${Math.min(100,(biz.weeks_running||0)*10)}%</div>
+      <button class="btn btn-green btn-full" onclick="collectProfit()">💰 Collect This Week's Profit</button>
+    </div>`;
+}
+
+async function collectProfit() {
+  const r = await fetch('/api/business_tick', {method:'POST'});
+  const d = await r.json();
+  if (d.error) { showToast('❌ ' + d.error); return; }
+  state.coins = d.coins; state.business = d.business;
+  updateUI(); showBusinessDashboard();
+  foxAnimate('celebrate');
+  showToast(`💰 Collected ₹${fmt(d.profit)} profit this week!`);
+  popXP(`+₹${fmt(d.profit)}`);
+}
+
+// ── PROPERTY ─────────────────────────────────────────────────────────────────
+function openProperty() {
+  const opts = document.getElementById('prop-options');
+  const props = [{type:'studio',icon:'🏢',name:'Studio Apt',price:50000,rent:250},{type:'1bhk',icon:'🏠',name:'1BHK Flat',price:80000,rent:400},{type:'2bhk',icon:'🏡',name:'2BHK Apt',price:150000,rent:750},{type:'villa',icon:'🏰',name:'Villa',price:300000,rent:1500}];
+  opts.innerHTML = props.map(p => `
+    <div class="prop-card" onclick="buyProperty('${p.type}')">
+      <div class="prop-icon">${p.icon}</div>
+      <div class="prop-name">${p.name}</div>
+      <div class="prop-price">₹${fmt(p.price)}</div>
+      <div class="prop-rent">+₹${p.rent}/month</div>
+    </div>`).join('');
+  document.getElementById('modal-property').classList.add('open');
+}
+
+async function buyProperty(type) {
+  const r = await fetch('/api/buy_property', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({type})});
+  const d = await r.json();
+  if (d.error) { showToast('❌ ' + d.error); return; }
+  state.coins = d.coins; state.properties = d.properties;
+  closeModal('modal-property');
+  updateUI();
+  showToast('🏠 Property purchased! Earning rental income!');
+  foxAnimate('spin');
+}
+
+// ── LIFE EVENTS ──────────────────────────────────────────────────────────────
+async function triggerEvent() {
+  const r = await fetch('/api/life_event');
+  const ev = await r.json();
+  currentEventId = ev.id;
+  document.getElementById('event-title').textContent = ev.title;
+  document.getElementById('event-desc').textContent = ev.desc;
+  document.getElementById('event-outcome').style.display = 'none';
+  document.getElementById('event-close-btn').style.display = 'none';
+  document.getElementById('event-choices').innerHTML = ev.choices.map((c,i) => `<button class="modal-choice" onclick="resolveEvent(${i})">${c.text}</button>`).join('');
+  document.getElementById('modal-event').classList.add('open');
+}
+
+async function resolveEvent(idx) {
+  const r = await fetch('/api/resolve_event', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({event_id: currentEventId, choice_idx: idx})});
+  const d = await r.json();
+  state.coins = d.coins;
+  updateUI();
+  document.getElementById('event-choices').innerHTML = '';
+  const out = document.getElementById('event-outcome');
+  out.textContent = d.outcome;
+  out.style.display = 'block';
+  document.getElementById('event-close-btn').style.display = 'block';
+  foxAnimate(d.effect >= 0 ? 'celebrate' : 'sad');
+  showBubble(d.effect >= 0 ? '💡 Good financial decision! Keep it up!' : '📚 Learn from this! Emergency funds save lives!');
+}
+
+// ── LEADERBOARD ──────────────────────────────────────────────────────────────
+async function loadLeaderboard() {
+  const r = await fetch('/api/leaderboard');
+  const users = await r.json();
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('lb-list').innerHTML = users.map((u,i) => `
+    <div class="lb-row ${u.is_me?'lb-me':''}">
+      <div class="lb-rank ${i===0?'top1':i===1?'top2':i===2?'top3':''}">${medals[i]||u.rank}</div>
+      <div class="lb-avatar" style="${u.is_me?'background:var(--navy)':''}">${u.avatar}</div>
+      <div class="lb-name">${u.name}</div>
+      <div><div class="lb-xp">⚡ ${u.xp} XP</div><div style="font-size:11px;color:var(--muted);">🔥 ${u.streak} streak</div></div>
+    </div>`).join('');
+  const r2 = await fetch('/api/state');
+  const s = await r2.json();
+  document.getElementById('badges-grid').innerHTML = (s.badges||[]).map(b => `
+    <div class="badge-item ${b.unlocked?'unlocked':'locked'}">
+      <div class="badge-icon-big">${b.icon}</div>
+      <div class="badge-name">${b.name}</div>
+    </div>`).join('');
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function fmt(n) { return Number(n).toLocaleString('en-IN'); }
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function switchTab(group, tab) {
+  document.querySelectorAll(`[id^="${group}-"]`).forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`${group}-${tab}`).classList.add('active');
+  event.target.classList.add('active');
+}
+async function resetGame() {
+  if (!confirm('Reset all progress?')) return;
+  await fetch('/api/reset', {method:'POST'});
+  location.reload();
+}
+
+init();
+</script>
+</body>
+</html>
